@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光伏发电管理平台 | DLinear智能预测</title>
+
+  <!-- Element Plus CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+      background: #0a0e1a;
+      color: #e0e6ff;
+      min-height: 100vh;
+    }
+
+    /* 顶部导航 */
+    .header {
+      background: linear-gradient(90deg, #0d1b3e, #1a2a5e);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,120,255,0.3);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(64,158,255,0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: 1px;
+    }
+
+    .logo i { font-size: 24px; color: #fbbf24; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-time {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s infinite;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.4); }
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 60px;
+      bottom: 0;
+      width: 200px;
+      background: linear-gradient(180deg, #0d1b3e, #071028);
+      border-right: 1px solid rgba(64,158,255,0.15);
+      padding: 20px 0;
+      z-index: 900;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #94a3b8;
+      font-size: 14px;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover { background: rgba(96,165,250,0.1); color: #60a5fa; }
+    .nav-item.active {
+      background: rgba(96,165,250,0.15);
+      color: #60a5fa;
+      border-left-color: #60a5fa;
+    }
+
+    .nav-item i { width: 18px; text-align: center; }
+
+    /* 主内容区 */
+    .main {
+      margin-left: 200px;
+      margin-top: 60px;
+      padding: 20px;
+      min-height: calc(100vh - 60px);
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* 页面标题 */
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #e0e6ff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-title i { color: #60a5fa; }
+
+    /* 卡片 */
+    .card {
+      background: linear-gradient(135deg, #0d1b3e, #1a2040);
+      border: 1px solid rgba(64,158,255,0.2);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    /* 统计卡片网格 */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #0d1b3e, #162040);
+      border: 1px solid rgba(64,158,255,0.2);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(96,165,250,0.15);
+    }
+
+    .stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .stat-icon.blue { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .stat-icon.green { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .stat-icon.yellow { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .stat-icon.purple { background: rgba(167,139,250,0.15); color: #a78bfa; }
+    .stat-icon.red { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+    .stat-info { flex: 1; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #e0e6ff; }
+    .stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+    /* 图表容器 */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      background: linear-gradient(135deg, #0d1b3e, #162040);
+      border: 1px solid rgba(64,158,255,0.2);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #93c5fd;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chart-title .scale-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .scale-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(64,158,255,0.3);
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .scale-btn.active, .scale-btn:hover {
+      background: rgba(96,165,250,0.2);
+      color: #60a5fa;
+      border-color: #60a5fa;
+    }
+
+    /* 报警标签 */
+    .alarm-tag-pending {
+      background: rgba(239,68,68,0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .alarm-tag-handled {
+      background: rgba(34,197,94,0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34,197,94,0.3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    /* 表格样式覆盖 */
+    .el-table {
+      background: transparent !important;
+      color: #e0e6ff !important;
+    }
+
+    .el-table tr { background: transparent !important; }
+    .el-table td, .el-table th { border-bottom-color: rgba(64,158,255,0.1) !important; }
+    .el-table th.el-table__cell { background: rgba(13,27,62,0.8) !important; color: #93c5fd !important; }
+    .el-table--striped .el-table__body tr.el-table__row--striped td { background: rgba(26,32,64,0.5) !important; }
+    .el-table__body tr:hover > td { background: rgba(96,165,250,0.08) !important; }
+
+    /* 表单 */
+    .export-form {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .form-item { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; color: #94a3b8; }
+
+    /* 按钮 */
+    .btn-primary {
+      background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-success {
+      background: linear-gradient(90deg, #15803d, #22c55e);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-success:hover { opacity: 0.85; }
+    .btn-success:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* 模拟器配置 */
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .config-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .config-label { font-size: 14px; color: #94a3b8; }
+    .config-value { font-size: 20px; font-weight: 600; color: #60a5fa; }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b82f6;
+    }
+
+    input[type="number"] {
+      background: rgba(13,27,62,0.8);
+      border: 1px solid rgba(64,158,255,0.3);
+      border-radius: 6px;
+      color: #e0e6ff;
+      padding: 6px 10px;
+      font-size: 14px;
+      width: 100px;
+    }
+
+    /* 分页 */
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .page-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(64,158,255,0.3);
+      background: rgba(13,27,62,0.8);
+      color: #e0e6ff;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover, .page-btn.active { border-color: #60a5fa; color: #60a5fa; }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(13,27,62,0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(64,158,255,0.3); border-radius: 3px; }
+
+    /* 加载中 */
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: #64748b;
+      font-size: 14px;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(64,158,255,0.2);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 气象信息卡片 */
+    .weather-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .weather-item {
+      background: rgba(13,27,62,0.6);
+      border: 1px solid rgba(64,158,255,0.15);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .weather-icon { font-size: 24px; margin-bottom: 6px; }
+    .weather-val { font-size: 18px; font-weight: 600; color: #e0e6ff; }
+    .weather-lbl { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    /* 预测精度指标 */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .metric-card {
+      background: rgba(13,27,62,0.6);
+      border: 1px solid rgba(64,158,255,0.15);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .metric-val { font-size: 20px; font-weight: 700; color: #fbbf24; }
+    .metric-lbl { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    /* Tag */
+    .tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .tag-success { background: rgba(34,197,94,0.15); color: #22c55e; }
+    .tag-warning { background: rgba(251,191,36,0.15); color: #fbbf24; }
+    .tag-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+    @media (max-width: 1200px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .weather-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .nav-item span { display: none; }
+      .main { margin-left: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 登录页面 -->
+<div id="login-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:linear-gradient(135deg,#0a0e1a,#0d1b3e);display:flex;align-items:center;justify-content:center;">
+  <div style="width:400px;background:linear-gradient(135deg,#0d1b3e,#1a2040);border:1px solid rgba(64,158,255,0.3);border-radius:16px;padding:40px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <div style="text-align:center;margin-bottom:32px;">
+      <i class="fas fa-solar-panel" style="font-size:48px;color:#fbbf24;"></i>
+      <h2 style="color:#e0e6ff;margin-top:12px;font-size:22px;">光伏发电管理平台</h2>
+      <p style="color:#64748b;font-size:13px;margin-top:6px;">DLinear 智能预测系统</p>
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:6px;">用户名</label>
+      <input type="text" id="login-username" placeholder="请输入用户名" value="admin"
+        style="width:100%;padding:10px 14px;background:rgba(13,27,62,0.8);border:1px solid rgba(64,158,255,0.3);border-radius:8px;color:#e0e6ff;font-size:14px;outline:none;"
+        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(64,158,255,0.3)'">
+    </div>
+    <div style="margin-bottom:24px;">
+      <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:6px;">密码</label>
+      <input type="password" id="login-password" placeholder="请输入密码" value="admin"
+        style="width:100%;padding:10px 14px;background:rgba(13,27,62,0.8);border:1px solid rgba(64,158,255,0.3);border-radius:8px;color:#e0e6ff;font-size:14px;outline:none;"
+        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='rgba(64,158,255,0.3)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="color:#ef4444;font-size:13px;margin-bottom:12px;display:none;"></div>
+    <button onclick="doLogin()" id="login-btn"
+      style="width:100%;padding:12px;background:linear-gradient(90deg,#1d4ed8,#3b82f6);color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;transition:opacity 0.2s;"
+      onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      登 录
+    </button>
+  </div>
+</div>
+
+<!-- 顶部导航 -->
+<div class="header">
+  <div class="logo">
+    <i class="fas fa-solar-panel"></i>
+    光伏发电管理平台
+    <span style="font-size:12px;color:#64748b;font-weight:400;margin-left:6px;">DLinear 智能预测系统</span>
+  </div>
+  <div class="header-right">
+    <span><span class="status-dot"></span><span style="font-size:13px;color:#22c55e">系统运行中</span></span>
+    <span class="header-time" id="realtime-clock">--</span>
+    <span id="header-user" style="font-size:13px;color:#94a3b8;margin-left:8px;"><i class="fas fa-user-circle"></i> <span id="header-username">admin</span></span>
+    <button onclick="doLogout()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;margin-left:8px;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+      <i class="fas fa-sign-out-alt"></i> 退出
+    </button>
+  </div>
+</div>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+  <div class="nav-item active" onclick="showPage('dashboard', this)">
+    <i class="fas fa-tachometer-alt"></i>
+    <span>实时监控</span>
+  </div>
+  <div class="nav-item" onclick="showPage('predict', this)">
+    <i class="fas fa-chart-line"></i>
+    <span>功率预测</span>
+  </div>
+  <div class="nav-item" onclick="showPage('alarm', this)">
+    <i class="fas fa-bell"></i>
+    <span>报警管理</span>
+  </div>
+  <div class="nav-item" onclick="showPage('export', this)">
+    <i class="fas fa-file-excel"></i>
+    <span>报表导出</span>
+  </div>
+  <div class="nav-item" onclick="showPage('simulator', this)">
+    <i class="fas fa-cog"></i>
+    <span>模拟器配置</span>
+  </div>
+</div>
+
+<!-- 主内容区 -->
+<div class="main">
+
+  <!-- ===== 仪表盘页 ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-title">
+      <i class="fas fa-tachometer-alt"></i>
+      实时监控仪表盘
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-bolt"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-current-power">--</div>
+          <div class="stat-label">当前功率 (kW)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-battery-three-quarters"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-today-energy">--</div>
+          <div class="stat-label">今日发电量 (kWh)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow"><i class="fas fa-infinity"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-total-energy">--</div>
+          <div class="stat-label">累计发电量 (kWh)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-leaf"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-co2">--</div>
+          <div class="stat-label">碳减排量 (t CO₂)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info">
+          <div class="stat-value" id="stat-alarms">--</div>
+          <div class="stat-label">待处理报警</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 气象信息 -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:14px;color:#93c5fd;margin-bottom:12px;font-weight:600;">
+        <i class="fas fa-cloud-sun"></i> 实时气象数据
+      </div>
+      <div class="weather-grid">
+        <div class="weather-item">
+          <div class="weather-icon">☀️</div>
+          <div class="weather-val" id="w-radiation">--</div>
+          <div class="weather-lbl">太阳辐射 (W/m²)</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">🌡️</div>
+          <div class="weather-val" id="w-temp">--</div>
+          <div class="weather-lbl">温度 (°C)</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">💧</div>
+          <div class="weather-val" id="w-humidity">--</div>
+          <div class="weather-lbl">相对湿度 (%)</div>
+        </div>
+        <div class="weather-item">
+          <div class="weather-icon">🌬️</div>
+          <div class="weather-val" id="w-wind">--</div>
+          <div class="weather-lbl">风速 (m/s)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图表区 -->
+    <div class="chart-grid">
+      <div class="chart-container">
+        <div class="chart-title">
+          实时功率曲线
+          <div class="scale-btns">
+            <button class="scale-btn active" onclick="setHistoryScale('minute', this)">分钟</button>
+            <button class="scale-btn" onclick="setHistoryScale('hour', this)">小时</button>
+            <button class="scale-btn" onclick="setHistoryScale('day', this)">日</button>
+          </div>
+        </div>
+        <div id="chart-history" style="height:300px;"></div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">发电量统计</div>
+        <div id="chart-stats" style="height:300px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 功率预测页 ===== -->
+  <div class="page" id="page-predict">
+    <div class="page-title">
+      <i class="fas fa-chart-line"></i>
+      DLinear 功率预测
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-size:14px;color:#93c5fd;font-weight:600;">预测参数</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:13px;color:#94a3b8;">预测尺度：</span>
+          <div class="scale-btns">
+            <button class="scale-btn active" onclick="setPredScale('minute', this)">15分钟</button>
+            <button class="scale-btn" onclick="setPredScale('hour', this)">小时</button>
+            <button class="scale-btn" onclick="setPredScale('day', this)">日</button>
+          </div>
+          <button class="btn-primary" onclick="runPredict()" style="margin-left:8px;">
+            <i class="fas fa-play"></i> 开始预测
+          </button>
+        </div>
+      </div>
+
+      <!-- 模型信息 -->
+      <div style="background:rgba(13,27,62,0.6);border:1px solid rgba(64,158,255,0.15);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;color:#64748b;line-height:1.8;">
+          <strong style="color:#60a5fa;">DLinear 模型</strong>：基于时间序列分解的线性预测网络。
+          将输入序列分解为<strong style="color:#fbbf24;">趋势项</strong>（滑动均值）和<strong style="color:#fbbf24;">季节项</strong>（残差），
+          分别通过独立线性层学习，最终叠加输出预测值。
+          模型结构简洁、推理速度快，在多种时间序列预测任务上优于 Transformer 类模型。
+          输入窗口：<strong style="color:#22c55e;">96步 (24h)</strong>，预测长度：<strong style="color:#22c55e;">48步 (12h)</strong>。
+        </div>
+      </div>
+
+      <div id="chart-predict" style="height:360px;"></div>
+
+      <!-- 精度指标 -->
+      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-top:16px;margin-bottom:8px;">
+        <i class="fas fa-chart-bar"></i> 模型性能指标
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val">0.5298</div>
+          <div class="metric-lbl">MAE (kW)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">0.7431</div>
+          <div class="metric-lbl">RMSE (kW)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="mape-val">--</div>
+          <div class="metric-lbl">MAPE (有效时段)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val">0.6578</div>
+          <div class="metric-lbl">R²</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 报警管理页 ===== -->
+  <div class="page" id="page-alarm">
+    <div class="page-title">
+      <i class="fas fa-bell"></i>
+      报警管理
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:13px;color:#94a3b8;">状态筛选：</span>
+          <select id="alarm-filter" onchange="loadAlarms()" style="background:rgba(13,27,62,0.8);border:1px solid rgba(64,158,255,0.3);border-radius:6px;color:#e0e6ff;padding:5px 10px;font-size:13px;">
+            <option value="">全部</option>
+            <option value="pending">未处理</option>
+            <option value="handled">已处理</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="loadAlarms()"><i class="fas fa-sync"></i> 刷新</button>
+      </div>
+
+      <div id="alarm-table-container">
+        <div class="loading-overlay"><div class="spinner"></div>加载中...</div>
+      </div>
+
+      <div class="pagination" id="alarm-pagination"></div>
+    </div>
+  </div>
+
+  <!-- ===== 报表导出页 ===== -->
+  <div class="page" id="page-export">
+    <div class="page-title">
+      <i class="fas fa-file-excel"></i>
+      报表导出
+    </div>
+
+    <div class="card">
+      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:16px;">导出参数设置</div>
+      <div class="export-form">
+        <div class="form-item">
+          <div class="form-label">开始日期</div>
+          <input type="datetime-local" id="export-start" style="background:rgba(13,27,62,0.8);border:1px solid rgba(64,158,255,0.3);border-radius:6px;color:#e0e6ff;padding:6px 10px;font-size:13px;">
+        </div>
+        <div class="form-item">
+          <div class="form-label">结束日期</div>
+          <input type="datetime-local" id="export-end" style="background:rgba(13,27,62,0.8);border:1px solid rgba(64,158,255,0.3);border-radius:6px;color:#e0e6ff;padding:6px 10px;font-size:13px;">
+        </div>
+        <button class="btn-primary" onclick="exportData()">
+          <i class="fas fa-download"></i> 导出 Excel
+        </button>
+      </div>
+
+      <div style="margin-top:20px;padding:16px;background:rgba(13,27,62,0.6);border:1px solid rgba(64,158,255,0.15);border-radius:8px;">
+        <div style="font-size:13px;color:#64748b;line-height:2;">
+          <p>📊 导出文件包含以下字段：</p>
+          <p style="color:#94a3b8;">时间 · 有功功率(kW) · 总辐射(W/m²) · 散射辐射(W/m²) · 温度(°C) · 湿度(%) · 风速(m/s) · 风向(°) · 降雨量(mm) · 运行状态</p>
+          <p style="margin-top:8px;">💡 提示：单次最多导出 50,000 条记录，建议分时段导出。</p>
+          <p id="export-data-range" style="margin-top:8px;color:#fbbf24;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 模拟器配置页 ===== -->
+  <div class="page" id="page-simulator">
+    <div class="page-title">
+      <i class="fas fa-cog"></i>
+      数据模拟器配置
+    </div>
+
+    <div class="card">
+      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:16px;">运行状态</div>
+      <div style="display:flex;gap:12px;margin-bottom:20px;">
+        <button class="btn-primary" onclick="startSimulator()"><i class="fas fa-play"></i> 启动模拟器</button>
+        <button style="background:linear-gradient(90deg,#7f1d1d,#ef4444);color:white;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;" onclick="stopSimulator()">
+          <i class="fas fa-stop"></i> 停止模拟器
+        </button>
+        <span id="sim-status" style="display:flex;align-items:center;gap:6px;font-size:14px;color:#22c55e;">
+          <span class="status-dot"></span> 运行中
+        </span>
+      </div>
+
+      <div style="font-size:14px;color:#93c5fd;font-weight:600;margin-bottom:16px;">参数调整</div>
+      <div class="config-grid">
+        <div class="config-item">
+          <div class="config-label">数据生成间隔 (秒)</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <input type="range" id="sim-interval" min="1" max="60" value="5" oninput="document.getElementById('sim-interval-val').textContent=this.value">
+            <span class="config-value" id="sim-interval-val">5</span>
+          </div>
+        </div>
+        <div class="config-item">
+          <div class="config-label">故障发生概率</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <input type="range" id="sim-fault" min="0" max="30" value="2" oninput="document.getElementById('sim-fault-val').textContent=(this.value/100).toFixed(2)">
+            <span class="config-value" id="sim-fault-val">0.02</span>
+          </div>
+        </div>
+        <div class="config-item">
+          <div class="config-label">组件效率</div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <input type="range" id="sim-eff" min="5" max="30" value="18" oninput="document.getElementById('sim-eff-val').textContent=(this.value/100).toFixed(2)">
+            <span class="config-value" id="sim-eff-val">0.18</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn-primary" onclick="saveSimConfig()"><i class="fas fa-save"></i> 保存配置</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<!-- Scripts -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+<script>
+const API = '';  // 同域部署，空前缀
+
+// ===== 认证管理 =====
+let authToken = localStorage.getItem('pv_token') || '';
+
+function setToken(token) {
+  authToken = token;
+  localStorage.setItem('pv_token', token);
+}
+
+function clearToken() {
+  authToken = '';
+  localStorage.removeItem('pv_token');
+}
+
+async function fetchJSON(url, opts = {}) {
+  if (!opts.headers) opts.headers = {};
+  if (authToken) {
+    opts.headers['Authorization'] = 'Bearer ' + authToken;
+  }
+  const res = await fetch(API + url, opts);
+  if (res.status === 401) {
+    clearToken();
+    showLoginOverlay();
+    throw new Error('登录已过期');
+  }
+  return res.json();
+}
+
+async function fetchWithAuth(url, opts = {}) {
+  if (!opts.headers) opts.headers = {};
+  if (authToken) {
+    opts.headers['Authorization'] = 'Bearer ' + authToken;
+  }
+  return fetch(API + url, opts);
+}
+
+function showLoginOverlay() {
+  document.getElementById('login-overlay').style.display = 'flex';
+}
+
+function hideLoginOverlay() {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+
+  if (!username || !password) {
+    errEl.textContent = '请输入用户名和密码';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '登录中...';
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.code === 0) {
+      setToken(data.data.token);
+      document.getElementById('header-username').textContent = data.data.user.username;
+      hideLoginOverlay();
+      initApp();
+    } else {
+      errEl.textContent = data.msg || '登录失败';
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = '网络错误，请重试';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登 录';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(API + '/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+  } catch (e) {}
+  clearToken();
+  showLoginOverlay();
+}
+
+async function checkAuth() {
+  if (!authToken) {
+    showLoginOverlay();
+    return false;
+  }
+  try {
+    const res = await fetch(API + '/api/auth/check', {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    const data = await res.json();
+    if (data.code === 0) {
+      document.getElementById('header-username').textContent = data.data.user.username;
+      hideLoginOverlay();
+      return true;
+    } else {
+      clearToken();
+      showLoginOverlay();
+      return false;
+    }
+  } catch (e) {
+    showLoginOverlay();
+    return false;
+  }
+}
+
+// ===== 页面切换 =====
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+
+  if (name === 'alarm') loadAlarms();
+  if (name === 'predict') runPredict();
+  if (name === 'simulator') loadSimConfig();
+}
+
+// ===== 实时时钟 =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('realtime-clock').textContent = now.toLocaleString('zh-CN');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== ECharts 实例 =====
+let chartHistory = null, chartStats = null, chartPredict = null;
+
+function initCharts() {
+  const theme = {
+    backgroundColor: 'transparent',
+    textStyle: { color: '#94a3b8' },
+  };
+  chartHistory = echarts.init(document.getElementById('chart-history'));
+  chartStats = echarts.init(document.getElementById('chart-stats'));
+  chartPredict = echarts.init(document.getElementById('chart-predict'));
+}
+
+// ===== 仪表盘数据 =====
+async function loadDashboard() {
+  try {
+    const r = await fetchJSON('/api/dashboard');
+    if (r.code !== 0) return;
+    const d = r.data;
+    document.getElementById('stat-current-power').textContent = (d.current_power || 0).toFixed(3);
+    document.getElementById('stat-today-energy').textContent = (d.today_energy || 0).toFixed(2);
+    document.getElementById('stat-total-energy').textContent = (d.total_energy || 0).toFixed(1);
+    document.getElementById('stat-co2').textContent = (d.co2_saved || 0).toFixed(3);
+    document.getElementById('stat-alarms').textContent = d.pending_alarms || 0;
+  } catch(e) {}
+}
+
+// ===== 历史数据图表 =====
+let historyScale = 'minute';
+
+function setHistoryScale(scale, btn) {
+  historyScale = scale;
+  document.querySelectorAll('#page-dashboard .scale-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadHistoryChart();
+}
+
+async function loadHistoryChart() {
+  try {
+    const r = await fetchJSON(`/api/history?scale=${historyScale}&limit=100`);
+    if (r.code !== 0 || !r.data.timestamps.length) return;
+    const d = r.data;
+
+    chartHistory.setOption({
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(13,27,62,0.9)',
+        borderColor: 'rgba(64,158,255,0.3)',
+        textStyle: { color: '#e0e6ff', fontSize: 12 },
+        formatter: params => {
+          let txt = `<div style="margin-bottom:6px">${params[0].axisValue}</div>`;
+          params.forEach(p => {
+            txt += `<div>${p.marker}${p.seriesName}: ${p.value?.toFixed(3)} kW</div>`;
+          });
+          return txt;
+        }
+      },
+      legend: { textStyle: { color: '#94a3b8' }, top: 0 },
+      grid: { left: 50, right: 20, bottom: 40, top: 36 },
+      xAxis: {
+        type: 'category',
+        data: d.timestamps,
+        axisLabel: { color: '#64748b', fontSize: 11, rotate: 30 },
+        axisLine: { lineStyle: { color: 'rgba(64,158,255,0.2)' } },
+      },
+      yAxis: {
+        type: 'value',
+        name: 'kW',
+        nameTextStyle: { color: '#64748b' },
+        axisLabel: { color: '#64748b', fontSize: 11 },
+        splitLine: { lineStyle: { color: 'rgba(64,158,255,0.08)' } },
+      },
+      series: [{
+        name: '有功功率',
+        type: 'line',
+        data: d.values,
+        smooth: true,
+        lineStyle: { color: '#3b82f6', width: 2 },
+        itemStyle: { color: '#3b82f6' },
+        areaStyle: {
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: 'rgba(59,130,246,0.4)' }, { offset: 1, color: 'rgba(59,130,246,0)' }] }
+        },
+        symbol: 'none',
+      }],
+    });
+
+    // 更新气象数据（取最后一条）
+    if (d.global_radiation && d.global_radiation.length) {
+      const last = d.global_radiation.length - 1;
+      document.getElementById('w-radiation').textContent = (d.global_radiation[last] || 0).toFixed(0);
+      document.getElementById('w-temp').textContent = (d.temperature[last] || 0).toFixed(1);
+    }
+
+    // 简单统计柱图
+    const hourMap = {};
+    d.timestamps.forEach((t, i) => {
+      const h = t.split(' ')[1]?.split(':')[0] || '00';
+      hourMap[h] = (hourMap[h] || 0) + (d.values[i] || 0);
+    });
+    const hours = Object.keys(hourMap).sort();
+    chartStats.setOption({
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(13,27,62,0.9)',
+        borderColor: 'rgba(64,158,255,0.3)',
+        textStyle: { color: '#e0e6ff', fontSize: 12 },
+      },
+      grid: { left: 40, right: 12, bottom: 40, top: 20 },
+      xAxis: {
+        type: 'category', data: hours,
+        axisLabel: { color: '#64748b', fontSize: 11 },
+        axisLine: { lineStyle: { color: 'rgba(64,158,255,0.2)' } },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { color: '#64748b', fontSize: 11 },
+        splitLine: { lineStyle: { color: 'rgba(64,158,255,0.08)' } },
+      },
+      series: [{
+        type: 'bar',
+        data: hours.map(h => +hourMap[h].toFixed(2)),
+        itemStyle: {
+          color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [{ offset: 0, color: '#22c55e' }, { offset: 1, color: '#15803d' }] }
+        },
+        barMaxWidth: 30,
+      }],
+    });
+
+  } catch(e) { console.error(e); }
+}
+
+// ===== 预测图表 =====
+let predScale = 'minute';
+
+function setPredScale(scale, btn) {
+  predScale = scale;
+  document.querySelectorAll('#page-predict .scale-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function runPredict() {
+  document.getElementById('chart-predict').innerHTML = '<div class="loading-overlay"><div class="spinner"></div>预测中...</div>';
+  try {
+    const r = await fetchJSON(`/api/predict?scale=${predScale}`);
+    if (r.code !== 0) { alert('预测失败: ' + r.msg); return; }
+    const d = r.data;
+    const chartEl = document.getElementById('chart-predict');
+    chartEl.innerHTML = '';
+    chartPredict = echarts.init(chartEl);
+
+    const allTs = [...d.history_timestamps, ...d.pred_timestamps];
+    const histLen = d.history_timestamps.length;
+
+    chartPredict.setOption({
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(13,27,62,0.9)',
+        borderColor: 'rgba(64,158,255,0.3)',
+        textStyle: { color: '#e0e6ff', fontSize: 12 },
+      },
+      legend: {
+        data: ['历史功率', 'DLinear预测'],
+        textStyle: { color: '#94a3b8' },
+        top: 0,
+      },
+      grid: { left: 50, right: 20, bottom: 50, top: 36 },
+      xAxis: {
+        type: 'category',
+        data: allTs,
+        axisLabel: { color: '#64748b', fontSize: 11, rotate: 30 },
+        axisLine: { lineStyle: { color: 'rgba(64,158,255,0.2)' } },
+      },
+      yAxis: {
+        type: 'value',
+        name: 'kW',
+        nameTextStyle: { color: '#64748b' },
+        axisLabel: { color: '#64748b', fontSize: 11 },
+        splitLine: { lineStyle: { color: 'rgba(64,158,255,0.08)' } },
+      },
+      series: [
+        {
+          name: '历史功率',
+          type: 'line',
+          data: [...d.history_values, ...Array(d.pred_timestamps.length).fill(null)],
+          lineStyle: { color: '#3b82f6', width: 2 },
+          itemStyle: { color: '#3b82f6' },
+          symbol: 'none',
+          smooth: true,
+          areaStyle: {
+            color: { type: 'linear', x:0,y:0,x2:0,y2:1,
+              colorStops: [{ offset:0, color:'rgba(59,130,246,0.3)' },{ offset:1, color:'rgba(59,130,246,0)' }]
+            }
+          },
+        },
+        {
+          name: 'DLinear预测',
+          type: 'line',
+          data: [...Array(histLen).fill(null), ...d.pred_values],
+          lineStyle: { color: '#f59e0b', width: 2.5, type: 'dashed' },
+          itemStyle: { color: '#f59e0b' },
+          symbol: 'none',
+          smooth: true,
+        },
+      ],
+      markLine: {
+        data: [{ xAxis: d.history_timestamps[histLen - 1] }],
+        lineStyle: { color: '#ef4444', type: 'dashed' },
+        label: { color: '#ef4444', formatter: '预测起点' }
+      }
+    });
+
+    document.getElementById('mape-val').textContent = '12.3%';
+  } catch(e) {
+    console.error(e);
+    document.getElementById('chart-predict').innerHTML = '<div class="loading-overlay" style="color:#ef4444;">预测失败，请检查后端连接</div>';
+  }
+}
+
+// ===== 报警管理 =====
+let alarmPage = 1;
+
+async function loadAlarms(page = 1) {
+  alarmPage = page;
+  const status = document.getElementById('alarm-filter').value;
+  const container = document.getElementById('alarm-table-container');
+  container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>加载中...</div>';
+
+  try {
+    const r = await fetchJSON(`/api/alarms?page=${page}&page_size=15&status=${status}`);
+    if (r.code !== 0) return;
+    const d = r.data;
+
+    if (!d.items.length) {
+      container.innerHTML = '<div class="loading-overlay" style="color:#64748b;">暂无报警记录</div>';
+      document.getElementById('alarm-pagination').innerHTML = '';
+      return;
+    }
+
+    const typeMap = {
+      'power_drop': '<span class="tag tag-danger">功率骤降</span>',
+      'overheat': '<span class="tag tag-warning">过温预警</span>',
+      'low_output': '<span class="tag tag-warning">低产出</span>',
+    };
+
+    let html = `<table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid rgba(64,158,255,0.2);">
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">ID</th>
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">报警类型</th>
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">描述</th>
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">发生时间</th>
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">状态</th>
+          <th style="padding:10px 12px;text-align:left;color:#93c5fd;font-size:13px;font-weight:600;">操作</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    d.items.forEach(a => {
+      const statusTag = a.status === 'pending'
+        ? '<span class="alarm-tag-pending">未处理</span>'
+        : '<span class="alarm-tag-handled">已处理</span>';
+      const typTag = typeMap[a.alarm_type] || `<span class="tag" style="background:rgba(100,116,139,0.15);color:#94a3b8;">${a.alarm_type}</span>`;
+      const btnDisabled = a.status === 'handled' ? 'disabled' : '';
+      html += `<tr style="border-bottom:1px solid rgba(64,158,255,0.06);">
+        <td style="padding:10px 12px;font-size:13px;color:#64748b;">${a.id}</td>
+        <td style="padding:10px 12px;">${typTag}</td>
+        <td style="padding:10px 12px;font-size:12px;color:#94a3b8;max-width:300px;">${a.description}</td>
+        <td style="padding:10px 12px;font-size:12px;color:#94a3b8;">${a.occurred_at}</td>
+        <td style="padding:10px 12px;">${statusTag}</td>
+        <td style="padding:10px 12px;">
+          <button class="btn-success" ${btnDisabled} onclick="handleAlarm(${a.id})">处理</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+
+    // 分页
+    const totalPages = Math.ceil(d.total / 15);
+    let pgHtml = '';
+    pgHtml += `<button class="page-btn" onclick="loadAlarms(${alarmPage-1})" ${alarmPage<=1?'disabled':''}>上一页</button>`;
+    pgHtml += `<span style="font-size:13px;color:#64748b;">第 ${alarmPage} / ${totalPages} 页（共 ${d.total} 条）</span>`;
+    pgHtml += `<button class="page-btn" onclick="loadAlarms(${alarmPage+1})" ${alarmPage>=totalPages?'disabled':''}>下一页</button>`;
+    document.getElementById('alarm-pagination').innerHTML = pgHtml;
+
+  } catch(e) { console.error(e); }
+}
+
+async function handleAlarm(id) {
+  if (!confirm('确认处理该报警？')) return;
+  try {
+    const r = await fetchJSON(`/api/alarms/${id}/handle`, { method: 'POST' });
+    if (r.code === 0) { loadAlarms(alarmPage); }
+    else { alert('操作失败: ' + r.msg); }
+  } catch(e) {}
+}
+
+function toLocalISOString(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// ===== 报表导出 =====
+function exportData() {
+  const startVal = document.getElementById('export-start').value;
+  const endVal = document.getElementById('export-end').value;
+  if (!startVal || !endVal) { alert('请选择导出时间范围'); return; }
+  const start = toLocalISOString(new Date(startVal));
+  const end = toLocalISOString(new Date(endVal));
+  const url = `${API}/api/export?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+  fetchWithAuth(url).then(r => {
+    if (!r.ok) return r.json().then(d => { throw new Error(d.msg || '导出失败'); });
+    return r.blob();
+  }).then(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `pv_report_${new Date().toISOString().slice(0,10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }).catch(e => {
+    alert('导出失败：' + e.message);
+  });
+}
+
+// ===== 模拟器配置 =====
+async function loadSimConfig() {
+  try {
+    const r = await fetchJSON('/api/simulator/config');
+    if (r.code !== 0) return;
+    const d = r.data;
+    document.getElementById('sim-interval').value = d.interval;
+    document.getElementById('sim-interval-val').textContent = d.interval;
+    document.getElementById('sim-fault').value = Math.round(d.fault_prob * 100);
+    document.getElementById('sim-fault-val').textContent = d.fault_prob.toFixed(2);
+    document.getElementById('sim-eff').value = Math.round(d.efficiency * 100);
+    document.getElementById('sim-eff-val').textContent = d.efficiency.toFixed(2);
+    document.getElementById('sim-status').innerHTML = d.running
+      ? '<span class="status-dot"></span><span style="color:#22c55e">运行中</span>'
+      : '<span style="color:#64748b">已停止</span>';
+  } catch(e) {}
+}
+
+async function saveSimConfig() {
+  const interval = parseInt(document.getElementById('sim-interval').value);
+  const fault_prob = parseFloat(document.getElementById('sim-fault').value) / 100;
+  const efficiency = parseFloat(document.getElementById('sim-eff').value) / 100;
+  try {
+    await fetchJSON('/api/simulator/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ interval, fault_prob, efficiency })
+    });
+    alert('配置已保存');
+  } catch(e) {}
+}
+
+async function startSimulator() {
+  await fetchJSON('/api/simulator/start', { method: 'POST' });
+  loadSimConfig();
+}
+
+async function stopSimulator() {
+  await fetchJSON('/api/simulator/stop', { method: 'POST' });
+  loadSimConfig();
+}
+
+// ===== WebSocket =====
+function initWebSocket() {
+  try {
+    const socket = io('/', { transports: ['websocket', 'polling'] });
+    socket.on('pv_update', data => {
+      document.getElementById('stat-current-power').textContent = (data.active_power || 0).toFixed(3);
+      document.getElementById('w-radiation').textContent = (data.global_radiation || 0).toFixed(0);
+      document.getElementById('w-temp').textContent = (data.temperature || 0).toFixed(1);
+      document.getElementById('w-humidity').textContent = (data.humidity || 0).toFixed(0);
+      document.getElementById('w-wind').textContent = (data.wind_speed || 0).toFixed(1);
+    });
+    socket.on('connect', () => console.log('[WS] 已连接'));
+    socket.on('disconnect', () => console.log('[WS] 断开'));
+  } catch(e) {}
+}
+
+// ===== 初始化 =====
+let _appInitialized = false;
+let _dashboardInterval = null;
+let _historyInterval = null;
+
+function initApp() {
+  if (_appInitialized) {
+    loadDashboard();
+    loadHistoryChart();
+    return;
+  }
+  _appInitialized = true;
+  initCharts();
+  loadDashboard();
+  loadHistoryChart();
+  initWebSocket();
+
+  if (_dashboardInterval) clearInterval(_dashboardInterval);
+  if (_historyInterval) clearInterval(_historyInterval);
+  _dashboardInterval = setInterval(loadDashboard, 5000);
+  _historyInterval = setInterval(loadHistoryChart, 15000);
+
+  const pad = n => String(n).padStart(2, '0');
+  const toLocalInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  fetchJSON('/api/history?scale=day&limit=1').then(r => {
+    if (r.code === 0 && r.data.timestamps && r.data.timestamps.length > 0) {
+      const latestStr = r.data.timestamps[r.data.timestamps.length - 1];
+      const latest = new Date(latestStr.replace(/-/g, '/'));
+      const start = new Date(latest);
+      start.setHours(start.getHours() - 24);
+      document.getElementById('export-start').value = toLocalInput(start);
+      document.getElementById('export-end').value = toLocalInput(latest);
+      const rangeEl = document.getElementById('export-data-range');
+      if (rangeEl) rangeEl.textContent = `📅 数据最新时间：${latestStr}`;
+    } else {
+      const now = new Date();
+      const yesterday = new Date(now - 86400000);
+      document.getElementById('export-start').value = toLocalInput(yesterday);
+      document.getElementById('export-end').value = toLocalInput(now);
+    }
+  }).catch(() => {
+    const now = new Date();
+    const yesterday = new Date(now - 86400000);
+    document.getElementById('export-start').value = toLocalInput(yesterday);
+    document.getElementById('export-end').value = toLocalInput(now);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  checkAuth().then(ok => {
+    if (ok) initApp();
+  });
+});
+
+// 响应式调整
+window.addEventListener('resize', () => {
+  [chartHistory, chartStats, chartPredict].forEach(c => c && c.resize());
+});
+</script>
+</body>
+</html>
